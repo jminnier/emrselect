@@ -1,0 +1,17 @@
+Package: emrselect
+Type: Package
+Title: Automated EMR feature selection.
+Version: 0.0.9000
+Date: 2015-05-07
+Author: person("Jessica", "Minnier", email = "minnier@ohsu.edu",
+    role = c("aut", "cre"))
+Maintainer: Who to complain to <yourfault@somewhere.net>
+Description: More about what it does (maybe more than one line)
+License: GPL (>= 2)
+LazyData: TRUE
+Imports:
+    dplyr,
+    glmpath,
+    lars,
+    MASS,
+    stepPlr

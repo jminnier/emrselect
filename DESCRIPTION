@@ -14,4 +14,5 @@ Imports:
     glmpath,
     lars,
     MASS,
+    mvtnorm,
     stepPlr

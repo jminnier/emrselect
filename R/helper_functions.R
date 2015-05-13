@@ -1,4 +1,9 @@
 
+VTM<-function(vc, dm){
+  matrix(vc, ncol=length(vc), nrow=dm, byrow=T)
+}
+
+
 logit = function(xx){log(xx/(1-xx))};  g = function(xx){exp(xx)/(1+exp(xx))};
 d1g = function(xx){g(xx)*(1-g(xx))}; d2g = function(xx){d1g(xx)*(1-2*g(xx))}
 

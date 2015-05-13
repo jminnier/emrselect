@@ -11,14 +11,21 @@
 #'
 #' @examples Par.FUN()
 Par.FUN = function(dat){
-  Y = dat[,"Y"]; S = dat[,substring(colnames(dat),1,1)=="S",drop=F]; G = dat[,substring(colnames(dat),1,1)=="G"];
+  Y = dat[,"Y"]
+  S = dat[,substring(colnames(dat),1,1)=="S",drop=F]
+  G = dat[,substring(colnames(dat),1,1)=="G"]
+
+  # surrogate
   uni.S = unique(sort(c(S))); K = length(uni.S); nn = nrow(dat); A = ncol(S)
   Dmat = Imat = matrix(0,nrow=nn*A,ncol=K*A);
-  for(aa in 1:A){Imat[1:nn+(aa-1)*nn,1:K+(aa-1)*K]=1*(S[,aa]==VTM(uni.S,nn));Dmat[1:nn+(aa-1)*nn,1:K+(aa-1)*K]=1}
+  for(aa in 1:A){
+    Imat[1:nn+(aa-1)*nn,1:K+(aa-1)*K]=1*(S[,aa]==VTM(uni.S,nn));Dmat[1:nn+(aa-1)*nn,1:K+(aa-1)*K]=1
+    }
   bet = glm(Y~G,family=binomial)$coef
   alp1 = matrix(t(rep(Y,A))%*%Imat/t(rep(Y,A))%*%Dmat,nrow=K);
   alp0 = matrix(t(rep(1-Y,A))%*%Imat/t(rep(1-Y,A))%*%Dmat,nrow=K);
-  row.names(alp1)=mypaste("SE",1:K); row.names(alp0)=mypaste("SP",1:K); colnames(alp1)=colnames(alp0)=mypaste("S",1:A)
+  row.names(alp1)=paste0("SE",1:K); row.names(alp0)=paste0("SP",1:K)
+  colnames(alp1)=colnames(alp0)=paste0("S",1:A)
   list("bet"=bet,"alp1"=alp1,"alp0"=alp0)
 }
 
@@ -48,8 +55,8 @@ Est.FUN2 = function(dat,bet.ini,alp1.ini,alp0.ini,alp.known=F){ ##alp1,alp0 is K
     #print(c(step,eps)); print(bet); print(cbind(matrix(alp1,nrow=A,byrow=T),matrix(alp0,nrow=A,byrow=T)))
     #if(step>2000){if(eps.vec[pmin(step,5000)]>eps.vec[pmin(step,5000)-200]){break}}
   }
-  alp1 = matrix(alp1,ncol=A); alp0 = matrix(alp0,ncol=A);colnames(alp0)=colnames(alp1) = mypaste("S",1:A);
-  row.names(alp1) = mypaste("SE",1:K); row.names(alp0)=mypaste("SP",1:K)
+  alp1 = matrix(alp1,ncol=A); alp0 = matrix(alp0,ncol=A);colnames(alp0)=colnames(alp1) = paste0("S",1:A);
+  row.names(alp1) = paste0("SE",1:K); row.names(alp0)=paste0("SP",1:K)
   if(eps > 1e-5){bet=bet*NA;alp=alp*NA}
   list("bet"=bet,"alp1"=alp1,"alp0")
 }
@@ -60,8 +67,8 @@ Est.FUN = function(dat,bet.ini,alp1.ini,alp0.ini,alp.known=F){ ##alp1,alp0 is K-
   Z = cbind(1,Gi[rep(1:nn,A),]) ## (nn*A) x (p+1) matrix
   Dmat = Imat = matrix(0,nrow=nn*A,ncol=K*A);Itil = matrix(0,nrow=nn*A,ncol=K1*A); I1=rep(0,nn*A)
   for(aa in 1:A){tmpI = 1*(Si[,aa]==VTM(c(s1,uni.S),nn));Imat[1:nn+(aa-1)*nn,1:K+(aa-1)*K]=tmpI;
-                 tmpI = tmpI[,-1,drop=F]-1*(Si[,aa]==s1);Itil[1:nn+(aa-1)*nn,1:K1+(aa-1)*K1]=tmpI
-                 I1[1:nn+(aa-1)*nn]=1*(Si[,aa]==s1);Dmat[1:nn+(aa-1)*nn,1:K+(aa-1)*K]=1}
+  tmpI = tmpI[,-1,drop=F]-1*(Si[,aa]==s1);Itil[1:nn+(aa-1)*nn,1:K1+(aa-1)*K1]=tmpI
+  I1[1:nn+(aa-1)*nn]=1*(Si[,aa]==s1);Dmat[1:nn+(aa-1)*nn,1:K+(aa-1)*K]=1}
   step=eps=1; bet = c(bet.ini); alp1 = c(alp1.ini); alp0 = c(alp0.ini); eps.vec=rep(0,5000)
   while(eps > 1e-5){
     eps2=step1=1
@@ -83,8 +90,8 @@ Est.FUN = function(dat,bet.ini,alp1.ini,alp0.ini,alp.known=F){ ##alp1,alp0 is K-
     #print(c(step,eps)); print(bet); print(cbind(matrix(alp1,nrow=A,byrow=T),matrix(alp0,nrow=A,byrow=T)))
     if(step>2000){if(eps.vec[pmin(step,5000)]>(min(eps.vec[1:step])*10)&max(abs(score))>1){break}}; step=step+1;
   }
-  alp1 = matrix(alp1,ncol=A); alp0 = matrix(alp0,ncol=A);colnames(alp0)=colnames(alp1) = mypaste("S",1:A);
-  row.names(alp1) = mypaste("SE",1+1:K1); row.names(alp0)=mypaste("SP",1+1:K1)
+  alp1 = matrix(alp1,ncol=A); alp0 = matrix(alp0,ncol=A);colnames(alp0)=colnames(alp1) = paste0("S",1:A);
+  row.names(alp1) = paste0("SE",1+1:K1); row.names(alp0)=paste0("SP",1+1:K1)
   if(eps > 1e-5){bet=bet*NA;alp1=alp1*NA;alp0=alp0*NA}
   list("bet"=bet,"alp1"=alp1,"alp0"=alp0)
 }
@@ -105,7 +112,7 @@ Est.FUN.uniS = function(dat,bet.ini,alp.ini){
     if(is.na(eps)){browser()}
     if(floor(k.step/500)==ceiling(k.step/500)){print(c(k.step,eps,round(bet,3))); print(round(c(alp1,alp0),3))}
   }; print(k.step)
-  alp = c(alp1,alp0); names(alp) = c(mypaste("SE",1:K),mypaste("SP",1:K))
+  alp = c(alp1,alp0); names(alp) = c(paste0("SE",1:K),paste0("SP",1:K))
   list("bet"=bet,"alp"=alp)
 }
 
@@ -117,8 +124,8 @@ Par.Marg.FUN = function(dat){
   bet = apply(G,2,function(g,y){glm(y~g,family=binomial)$coef},y=Y)
   alp1 = matrix(t(Y)%*%(S[,rep(1:A,K)]==VTM(rep(uni.S,rep(A,K)),tmpn)),nrow=A)/sum(Y)     ## AxK
   alp0 = matrix(t(1-Y)%*%(S[,rep(1:A,K)]==VTM(rep(uni.S,rep(A,K)),tmpn)),nrow=A)/sum(1-Y) ## AxK
-  row.names(alp1) = row.names(alp0) = mypaste("S",1:A);
-  alp = cbind(alp1,alp0); row.names(alp) = mypaste("S",1:A); colnames(alp) = c(mypaste("SE",1:K),mypaste("SP",1:K))
+  row.names(alp1) = row.names(alp0) = paste0("S",1:A);
+  alp = cbind(alp1,alp0); row.names(alp) = paste0("S",1:A); colnames(alp) = c(paste0("SE",1:K),paste0("SP",1:K))
   list("bet"=bet,"alp"=alp)
 }
 
@@ -130,8 +137,8 @@ Est.Marg = function(dat,bet.ini,alp1.ini,alp0.ini,alp.known=F){ ##alp1,alp0 is A
   Dmat = Imat = matrix(0,nrow=nn*p*A,ncol=K*A);
   Itil = matrix(0,nrow=nn*p*A,ncol=K1*A); eps = 1; step=0; I1 = rep(0,nn*p*A)
   for(aa in 1:A){tmpI = 1*(Si[,aa]==VTM(c(s1,uni.S),nn)); Imat[1:(nn*p)+(aa-1)*(nn*p),1:K+(aa-1)*K]=tmpI[rep(1:nn,p),]
-                 tmpI = tmpI[,-1,drop=F]- 1*(Si[,aa]==s1);      Itil[1:(nn*p)+(aa-1)*(nn*p),1:K1+(aa-1)*K1]=tmpI[rep(1:nn,p),]
-                 I1[1:(nn*p)+(aa-1)*(nn*p)]=1*(Si[rep(1:nn,p),aa]==s1);Dmat[1:(nn*p)+(aa-1)*(nn*p),1:K+(aa-1)*K]=1}
+  tmpI = tmpI[,-1,drop=F]- 1*(Si[,aa]==s1);      Itil[1:(nn*p)+(aa-1)*(nn*p),1:K1+(aa-1)*K1]=tmpI[rep(1:nn,p),]
+  I1[1:(nn*p)+(aa-1)*(nn*p)]=1*(Si[rep(1:nn,p),aa]==s1);Dmat[1:(nn*p)+(aa-1)*(nn*p),1:K+(aa-1)*K]=1}
   bet = c(bet.ini); alp1 = c(t(alp1.ini)); alp0 = c(t(alp0.ini));
   while(eps > 1e-5){
     eps2 = 1; step1= 1
@@ -153,7 +160,7 @@ Est.Marg = function(dat,bet.ini,alp1.ini,alp0.ini,alp.known=F){ ##alp1,alp0 is A
     #if(step>2000){if(eps.vec[pmin(step,5000)]>eps.vec[pmin(step,5000)-200]){break}}
   }
   alp1 = t(matrix(alp1,ncol=A)); alp0 = t(matrix(alp0,ncol=A))
-  alp = cbind(alp1,alp0); row.names(alp) = mypaste("S",1:A); colnames(alp) = c(mypaste("SE",1+1:K1),mypaste("SP",1+1:K1))
+  alp = cbind(alp1,alp0); row.names(alp) = paste0("S",1:A); colnames(alp) = c(paste0("SE",1+1:K1),paste0("SP",1+1:K1))
   bet = matrix(bet,ncol=p); if(eps > 1e-5){bet=bet*NA;alp=alp*NA}
   list("bet"=bet,"alp"=alp)
 }
@@ -197,8 +204,8 @@ Est.Marg = function(dat,bet.ini,alp1.ini,alp0.ini,alp.known=F){ ##alp1,alp0 is A
   Dmat = Imat = matrix(0,nrow=nn*p*A,ncol=K*A);
   Itil = matrix(0,nrow=nn*p*A,ncol=K1*A); eps = 1; step=0; I1 = rep(0,nn*p*A)
   for(aa in 1:A){tmpI = 1*(Si[,aa]==VTM(c(s1,uni.S),nn)); Imat[1:(nn*p)+(aa-1)*(nn*p),1:K+(aa-1)*K]=tmpI[rep(1:nn,p),]
-                 tmpI = tmpI[,-1,drop=F]- 1*(Si[,aa]==s1);      Itil[1:(nn*p)+(aa-1)*(nn*p),1:K1+(aa-1)*K1]=tmpI[rep(1:nn,p),]
-                 I1[1:(nn*p)+(aa-1)*(nn*p)]=1*(Si[rep(1:nn,p),aa]==s1);Dmat[1:(nn*p)+(aa-1)*(nn*p),1:K+(aa-1)*K]=1}
+  tmpI = tmpI[,-1,drop=F]- 1*(Si[,aa]==s1);      Itil[1:(nn*p)+(aa-1)*(nn*p),1:K1+(aa-1)*K1]=tmpI[rep(1:nn,p),]
+  I1[1:(nn*p)+(aa-1)*(nn*p)]=1*(Si[rep(1:nn,p),aa]==s1);Dmat[1:(nn*p)+(aa-1)*(nn*p),1:K+(aa-1)*K]=1}
   bet = c(bet.ini); alp1 = c(t(alp1.ini)); alp0 = c(t(alp0.ini)); theta.old = c(bet,alp1,alp0)
   while(eps > 1e-5){
     eps2 = 1
@@ -220,7 +227,7 @@ Est.Marg = function(dat,bet.ini,alp1.ini,alp0.ini,alp.known=F){ ##alp1,alp0 is A
     #if(step>2000){if(eps.vec[pmin(step,5000)]>eps.vec[pmin(step,5000)-200]){break}}
   }
   alp1 = t(matrix(alp1,ncol=A)); alp0 = t(matrix(alp0,ncol=A))
-  alp = cbind(alp1,alp0); row.names(alp) = mypaste("S",1:A); colnames(alp) = c(mypaste("SE",1+1:K1),mypaste("SP",1+1:K1))
+  alp = cbind(alp1,alp0); row.names(alp) = paste0("S",1:A); colnames(alp) = c(paste0("SE",1+1:K1),paste0("SP",1+1:K1))
   bet = matrix(bet,ncol=p); if(eps > 1e-5){bet=bet*NA;alp=alp*NA}
   list("bet"=bet,"alp"=alp)
 }
@@ -263,8 +270,8 @@ Est.Marg.NR = function(dat,bet.ini,alp1.ini,alp0.ini){ ##alp1,alp0 is A x K-1, r
   Z = Z[rep(1:nrow(Z),A),] ## (nn*p)*A x 2p matrix
   Itil = matrix(0,nrow=nn*p*A,ncol=K1*A); eps = 1; step=0; I1 = rep(0,nn*p*A)
   for(aa in 1:A){tmpI = 1*(Si[,aa]==VTM(uni.S,nn))-1*(Si[,aa]==s1);
-                 Itil[1:(nn*p)+(aa-1)*(nn*p),1:K1+(aa-1)*K1]=tmpI[rep(1:nn,p),]
-                 I1[1:(nn*p)+(aa-1)*(nn*p)]=1*(Si[rep(1:nn,p),aa]==s1)}
+  Itil[1:(nn*p)+(aa-1)*(nn*p),1:K1+(aa-1)*K1]=tmpI[rep(1:nn,p),]
+  I1[1:(nn*p)+(aa-1)*(nn*p)]=1*(Si[rep(1:nn,p),aa]==s1)}
   bet = c(bet.ini); alp1 = c(t(alp1.ini)); alp0 = c(t(alp0.ini)); theta.old = c(bet,alp1,alp0)
   while(eps > 1e-5){
     bet = theta.old[1:(2*p)]; alp1 = theta.old[2*p+1:(A*K1)]; alp0 = theta.old[2*p+A*K1+1:(A*K1)]
@@ -283,7 +290,7 @@ Est.Marg.NR = function(dat,bet.ini,alp1.ini,alp0.ini){ ##alp1,alp0 is A x K-1, r
     eps = sqrt(sum((theta.new-theta.old)^2)); theta.old = theta.new; print(eps)
   }
   alp1 = t(matrix(alp1,ncol=A)); alp0 = t(matrix(alp0,ncol=A))
-  alp = cbind(alp1,alp0); row.names(alp) = mypaste("S",1:A); colnames(alp) = c(mypaste("SE",1+1:K1),mypaste("SP",1+1:K1))
+  alp = cbind(alp1,alp0); row.names(alp) = paste0("S",1:A); colnames(alp) = c(paste0("SE",1+1:K1),paste0("SP",1+1:K1))
   bet = matrix(bet,ncol=p); if(eps > 1e-5){bet=bet*NA;alp=alp*NA}
   list("bet"=bet,"alp"=alp)
 }
@@ -296,7 +303,7 @@ Est.Marg.EM = function(dat,bet.ini,alp.ini,alp.known=F){
   Z = Z[rep(1:nrow(Z),A),] ## (nn*p)*A x p matrix
   Dmat = Imat = matrix(0,nrow=nn*p*A,ncol=K*A); eps = 1; step=0
   for(aa in 1:A){tmpI = 1*(Si[,aa]==VTM(uni.S,nn)); Imat[1:(nn*p)+(aa-1)*(nn*p),1:K+(aa-1)*K]=tmpI[rep(1:nn,p),]
-                 Dmat[1:(nn*p)+(aa-1)*(nn*p),1:K+(aa-1)*K]=1}
+  Dmat[1:(nn*p)+(aa-1)*(nn*p),1:K+(aa-1)*K]=1}
   bet = c(bet.ini); alp1 = c(t(alp1.ini)); alp0 = c(t(alp0.ini)); eps.vec = rep(0,5000)
   ## bet: intercept, bet (2 x p matrix); alp: A x K matrix
   while(eps > 1e-5){
@@ -312,7 +319,7 @@ Est.Marg.EM = function(dat,bet.ini,alp.ini,alp.known=F){
     if(step>2000){if(eps.vec[pmin(step,5000)]>eps.vec[pmin(step,5000)-200]){break}}
   }
   alp1 = t(matrix(alp1,ncol=A)); alp0 = t(matrix(alp0,ncol=A))
-  alp = cbind(alp1,alp0); row.names(alp) = mypaste("S",1:A); colnames(alp) = c(mypaste("SE",1:K),mypaste("SP",1:K))
+  alp = cbind(alp1,alp0); row.names(alp) = paste0("S",1:A); colnames(alp) = c(paste0("SE",1:K),paste0("SP",1:K))
   bet = matrix(bet,ncol=p); if(eps > 1e-5){bet=bet*NA;alp=alp*NA}
   list("bet"=bet,"alp"=alp)
 }
@@ -336,7 +343,7 @@ Est.Marg.FUN.old = function(dat,bet.ini,alp.ini,alp.known=F){
       alp0 = matrix(t(rep(1,nn))%*%(matrix(IiA,nrow=nn)*(1-Yihat.a[,rep(1:A,K)])),nrow=A)/apply(1-Yihat.a,2,sum)}
     eps = mean(abs(c(bet-bet.ini,alp1-alp1.ini,alp0-alp0.ini))); ##print(eps); print(bet); print(cbind(alp1,alp0))
   }
-  alp = cbind(alp1,alp0); row.names(alp) = mypaste("S",1:A); colnames(alp) = c(mypaste("SE",1:K),mypaste("SP",1:K))
+  alp = cbind(alp1,alp0); row.names(alp) = paste0("S",1:A); colnames(alp) = c(paste0("SE",1:K),paste0("SP",1:K))
   list("bet"=bet,"alp"=alp)
 }
 

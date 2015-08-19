@@ -1,24 +1,54 @@
 
+#' Vector to matrix
+#'
+#' @param vc vector
+#' @param dm number of rows
+#'
+#' @return matrix
+#' @export
+#'
+#' @examples VTM(1:10,3)
 VTM<-function(vc, dm){
   matrix(vc, ncol=length(vc), nrow=dm, byrow=T)
 }
 
-
-logit = function(xx){log(xx/(1-xx))};  g = function(xx){exp(xx)/(1+exp(xx))};
-d1g = function(xx){g(xx)*(1-g(xx))}; d2g = function(xx){d1g(xx)*(1-2*g(xx))}
-
-g.logit = function(xx){exp(xx)/(exp(xx)+1)}
+#' logit function
+#' @export
 logit = function(xx){log(xx/(1-xx))}
+
+#' g inverse logit function
+#' @export
+g = function(xx){exp(xx)/(1+exp(xx))}
+
+#' d1g
+#' @export
+d1g = function(xx){g(xx)*(1-g(xx))}
+
+#' d2g
+#' @export
+d2g = function(xx){d1g(xx)*(1-2*g(xx))}
+
+#' g.logit same as g
+#' @export
+g.logit = function(xx){exp(xx)/(exp(xx)+1)}
+
+#' dg.logit
+#' @export
 dg.logit = function(xx){exp(xx)/(exp(xx)+1)^2}
+
+#' Intercept of Logistic Regression
+#' @export
 Intercept.GLM = function(yi,bxi){glm(yi~bxi,family="binomial")}
 
-
+#' ProbTestPos
+#' @export
 ProbTestPos <- function(tpr,fpr,prev)
 {
   tpr*prev + fpr*(1-prev)
 }
 
-
+#' L2Norm
+#' @export
 L2Norm <- function(data,coef,intercept=F)
 {
   yy = data[,1]; xx = data[,-1]; if(intercept){xx=cbind(1,xx)}
@@ -26,14 +56,8 @@ L2Norm <- function(data,coef,intercept=F)
 }
 
 
-PPV.FUN <- function(fpr,SE, mu0){ 1/(1+fpr/SE*(1-mu0)/mu0)}
-NPV.Project <- function(npv.e0y0,p.e1,p.y0.e0,npv.e1=1)
-{
-  ## P(D=0 | E=1 or E=0&Y=0) = {P(D=0|E=1)P(E=1)+P(D=0|E=0&Y=0)P(E=0&Y=0)}/{P(E=1)+P(E=0&Y=0)
-  npv.all = (npv.e1 * p.e1 + npv.e0y0*p.y0.e0*(1-p.e1))/(p.e1+p.y0.e0*(1-p.e1))
-  npv.all
-}
-
+#' S.FUN
+#' @export
 S.FUN <- function(yy,Yi,Di,yes.smooth=F)
 {
   if(yes.smooth){
@@ -45,9 +69,19 @@ S.FUN <- function(yy,Yi,Di,yes.smooth=F)
   ##sum.I(yy,"<=",Yi,Vi=Di)/sum(Di)
 }
 
+#' Sinv.FUN
+#' @export
 Sinv.FUN <- function(uu,Yi,Di,yes.smooth=F)
 {
   yy0<-unique(sort(Yi,decreasing=T)); ss0 <- S.FUN(yy0,Yi,Di,yes.smooth=yes.smooth)
   return(approx(ss0[!duplicated(ss0)],yy0[!duplicated(ss0)],uu,method="linear",f=0,rule=2)$y)
 }
+
+#' Create autocorrelation matrix
+#' @export
+autocorr.mat <- function(p = 100, rho = 0.9) {
+  mat <- diag(p)
+  return(rho^abs(row(mat)-col(mat)))
+}
+
 

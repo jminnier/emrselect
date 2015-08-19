@@ -5,8 +5,8 @@ Version: 0.0.9000
 Date: 2015-05-07
 Author: person("Jessica", "Minnier", email = "minnier@ohsu.edu",
     role = c("aut", "cre"))
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
+Maintainer: Jessica Minnier <minnier@ohsu.edu>
+Description: An automated feature selection method using a surrogate outcome with data from Electronic Medical Records.
 License: GPL (>= 2)
 LazyData: TRUE
 Imports:

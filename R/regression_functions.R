@@ -1,4 +1,13 @@
 
+
+Est.ALASSO.GLM.new = function(data,Wi=NULL,fit.type,nopen.ind=NULL,BIC.factor=0.1,offset=NULL,regularize=T){
+  if(fit.type=="exact"){
+    Est.ALASSO.GLM(data,Wi=Wi,nopen.ind=nopen.ind,BIC.factor=BIC.factor,offset=offset,fam0="binomial",regularize=regularize)
+  }else{
+    Est.ALASSO.GLM.Approx(data,Wi=Wi,nopen.ind=nopen.ind,BIC.factor=BIC.factor,offset=offset)
+  }
+}
+
 #' GLM with approximation
 #'
 #' @param data 1st column y; remaining x
@@ -132,3 +141,5 @@ CV.FUN <- function(data)
   bhat  = l1ce(y~x.w, standardize=F, bound=s0)
   list("b"=coef(bhat)/w, "s0"=s0, "lam0" =bhat$Lagrangian,"b0"=bhat$bound)
 }
+
+

@@ -4,7 +4,8 @@
 \alias{SIM.FUN}
 \title{Simulate data}
 \usage{
-SIM.FUN(nn, b.G, b.S, rho.S)
+SIM.FUN(nn, b.G, b.S, rho.S, rho.G, ng.cts, Gtype = "binomial",
+  Stype = "cts")
 }
 \arguments{
 \item{nn}{}
@@ -14,6 +15,14 @@ SIM.FUN(nn, b.G, b.S, rho.S)
 \item{b.S}{}
 
 \item{rho.S}{}
+
+\item{rho.G}{}
+
+\item{ng.cts}{}
+
+\item{Gtype}{}
+
+\item{Stype}{}
 }
 \value{
 dat
@@ -23,7 +32,7 @@ Simulate data
 }
 \examples{
 b0.G = rep(c(0.3,0.5,0.3,0.2,0),c(1,2,3,2,50)); b0.G = rbind(-1,b0.G); p = ncol(b0.G)
-b0.S = c(1.5,1.5,2); rho0.S = 0.3; A0 = length(b0.S);
-mydata0 = SIM.FUN(NN,b.G=b0.G,b.S=b0.S,rho.S=rho0.S);
+b0.S = c(1.5,1.5,2)
+mydata0 = SIM.FUN(NN,b.G=b0.G,b.S=b0.S,rho.S=0.3, rho.G=0.2);
 }
 

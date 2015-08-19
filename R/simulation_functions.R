@@ -12,7 +12,7 @@
 SIM.FUN.MultiG = function(nn,b.G,b.S,rho.S){## p: # of SNPs; K: # of algorithms
   p = length(b.G)-1; G = matrix(c(rnorm(nn*2), rbinom(nn*(p-2),prob=0.3,size=2)),nrow=nn)
   Y = rbinom(nn,size=1,prob=g(b.G[1]+c(G%*%b.G[-1])))
-  A = length(b.S); S = mvrnorm(nn,mu=c(-1.5,-1,rep(-0.5,A-2)),Sigma=rho.S+(1-rho.S)*diag(A)) + VTM(b.S,nn)*Y;
+  A = length(b.S); S = MASS::mvrnorm(nn,mu=c(-1.5,-1,rep(-0.5,A-2)),Sigma=rho.S+(1-rho.S)*diag(A)) + VTM(b.S,nn)*Y;
   dat=cbind(Y,G,S); colnames(dat)=c("Y",paste0("G",1:p),paste0("S",1:A))
   dat
 }

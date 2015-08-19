@@ -8,7 +8,7 @@
 #' @return list
 #' @export
 #'
-emr_select <- function(dat.X,dat.S,b0=100) {
+emrselect <- function(dat.X,dat.S,b0=100) {
   dat.X = as.matrix(dat.X)
   ## ========================================================================== ##
   ## multiple surroage analysis: clustering of the multivariate surrogate first ##
@@ -54,7 +54,7 @@ kern_varselect <- function(dat.S, dat.X, b0) {
   ## need dat.S; dat.X both in matrix form ##
   dat.S = as.matrix(dat.S);
   if(length(unique(dat.S[,1])) > 2){ #if dat.S is not binary, approximate
-    fit.type = "approx"; tmpfit = Mclust(dat.S,G=2); pi.S = ProbD.S(dat.S,par=tmpfit$par);
+    fit.type = "approx"; tmpfit = mclust::Mclust(dat.S,G=2); pi.S = ProbD.S(dat.S,par=tmpfit$par);
   }else{
     fit.type = "exact"; pi.S = dat.S[,1]
   }

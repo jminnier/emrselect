@@ -42,7 +42,7 @@ Est.ALASSO.GLM.Approx = function(data,
   #lasso
   tmpfit = lars::lars(Xtilde.t,Ytilde,type="lasso",normalize=F,intercept=F)
   lam.all = c(seq(min(tmpfit$lambda),max(tmpfit$lambda),length=500))
-  b.all = predict(tmpfit, s=lam.all, type="coefficients",mode="lambda")$coef
+  b.all = lars::predict.lars(tmpfit, s=lam.all, type="coefficients",mode="lambda")$coef
   b.all = b.all/VTM(w.b,nrow(b.all)); m0 = length(lam.all)
   df.all = apply(b.all[,-1,drop=F]!=0,1,sum)+1;
 
@@ -80,7 +80,7 @@ Est.ALASSO.GLM = function(data,Wi=NULL,rtn="EST",nopen.ind=NULL,regularize=yes.r
     ## ridge regression initial estimator
     ## ================================================================================ ##
     lam.ridge = pp/nn; ##bini = plr(x,y,lambda=lam.ridge,weights=Wi)$coef;
-    bini = as.vector(coef(glmnet(x,y,weights=Wi,alpha=0,standardize=F,lambda=lam.ridge,family=fam0,offset=offset)))
+    bini = as.vector(coef(glmnet::glmnet(x,y,weights=Wi,alpha=0,standardize=F,lambda=lam.ridge,family=fam0,offset=offset)))
 
     ## ================================================================================ ##
     ## adaptive weights for aLASSO
@@ -90,10 +90,10 @@ Est.ALASSO.GLM = function(data,Wi=NULL,rtn="EST",nopen.ind=NULL,regularize=yes.r
     ## ================================================================================ ##
     ## glmpath provides solution path for a range of penalty parameters ##
     ## ================================================================================ ##
-    tmpfit = glmpath(x.t,y,nopenalty.subset=nopen.ind,family=fam0,weight=Wi,standardize=F,min.lambda=0,
+    tmpfit = glmpath::glmpath(x.t,y,nopenalty.subset=nopen.ind,family=fam0,weight=Wi,standardize=F,min.lambda=0,
                      lambda2=lam.ridge,offset=offset)
     lam.all = c(seq(min(tmpfit$lambda),max(tmpfit$lambda),length=500))
-    b.all = predict(tmpfit, s=lam.all, type="coefficients",mode="lambda",offset=offset)
+    b.all = glmpath::predict.glmpath(tmpfit, s=lam.all, type="coefficients",mode="lambda",offset=offset)
     b.all = b.all/VTM(c(1,w.b),nrow(b.all)); m0 = length(lam.all)
     ## ================================================================================ ##
     ## calculates degree of freedom for all betas (corresponding to different lam.all) ##
@@ -102,7 +102,7 @@ Est.ALASSO.GLM = function(data,Wi=NULL,rtn="EST",nopen.ind=NULL,regularize=yes.r
     ## =============================================================================================================== ##
     ## calculates modified BIC, log(n) is modified as min{sum(y)^0.1, log(n)} to avoid over shrinkage in finite sample ##
     ## =============================================================================================================== ##
-    BIC.lam = -2*apply(predict(tmpfit,newx=x.t,newy=y,s=lam.all,type="loglik",mode="lambda",offset=offset),2,sum)+min(sum(y)^BIC.factor,log(sum(y)))*df.all
+    BIC.lam = -2*apply(glmpath::predict.glmpath(tmpfit,newx=x.t,newy=y,s=lam.all,type="loglik",mode="lambda",offset=offset),2,sum)+min(sum(y)^BIC.factor,log(sum(y)))*df.all
     m.opt = (1:m0)[BIC.lam==min(BIC.lam)]; bhat = b.all[m.opt,]; lamhat = lam.all[m.opt]
   }else{
     ## ========================================================================= ##

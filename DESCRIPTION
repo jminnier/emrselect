@@ -12,6 +12,7 @@ LazyData: TRUE
 Imports:
     dplyr,
     glmpath,
+    glmnet,
     lars,
     MASS,
     mvtnorm,

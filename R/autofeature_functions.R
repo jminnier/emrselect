@@ -10,6 +10,7 @@
 #'
 emrselect <- function(dat.X,dat.S,b0=100) {
   dat.X = as.matrix(dat.X)
+  A0 = ncol(as.matrix(dat.S))
   ## ========================================================================== ##
   ## multiple surroage analysis: clustering of the multivariate surrogate first ##
   ##                             then use predicted prob as pseudo outcome      ##

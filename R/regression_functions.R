@@ -24,7 +24,8 @@ Est.ALASSO.GLM.Approx = function(data,
                                  Wi=NULL,
                                  rtn="EST",
                                  nopen.ind=NULL,
-                                 BIC.factor=0.1,offset=NULL){
+                                 BIC.factor=0.1,
+                                 offset=NULL){
   data = as.matrix(data); y = data[,1]; x = data[,-1,drop=F]; nn=length(y); pp = ncol(x)
   if(is.null(Wi)){Wi=rep(1,nn)}; if(is.null(offset)){offset=rep(0,nn)}
 
@@ -110,8 +111,9 @@ Est.ALASSO.GLM = function(data,Wi=NULL,rtn="EST",nopen.ind=NULL,regularize=yes.r
     ## ========================================================================= ##
     bhat=bini=glm(y~x,family=fam0,weight=Wi)$coef;lamhat = 0; lam.all=BIC.lam=b.all=NULL
   }
-  out = c("b"=bhat, "bini"=bini,"lamhat"=lamhat,"lam.all"=lam.all,"BIC.lam"=BIC.lam,"b.all"=b.all)
-  if(rtn=="EST"){return(out)}else{return(list(out,"b.all"=b.all,"lam.all"=lam.all,"fit"=tmpfit,"BIC.lam"=BIC.lam))}
+  #out = c("b"=bhat, "bini"=bini,"lamhat"=lamhat,"lam.all"=lam.all,"BIC.lam"=BIC.lam,"b.all"=b.all)
+  out = c("b"=bhat,"bini"=bini,"lamhat"=lamhat)
+  if(rtn=="EST"){return(bhat)}else{return(list(out,"b.all"=b.all,"lam.all"=lam.all,"fit"=tmpfit,"BIC.lam"=BIC.lam))}
 }
 
 

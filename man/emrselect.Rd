@@ -4,7 +4,7 @@
 \alias{emrselect}
 \title{Automated feature selection}
 \usage{
-emrselect(dat.X, dat.S, b0 = 100)
+emrselect(dat.X, dat.S, b0 = 100, sub.boot = NULL, Scov.diag = FALSE)
 }
 \arguments{
 \item{dat.X}{data.frame or matrix of covariates}
@@ -12,6 +12,9 @@ emrselect(dat.X, dat.S, b0 = 100)
 \item{dat.S}{data.frame or matrix of surrogate markers}
 
 \item{b0}{number of perturbation resampling draws}
+
+\item{Scov.diag}{if TRUE restrict covariance of S mclust to
+be diagonal, default FALSE}
 }
 \value{
 list

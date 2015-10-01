@@ -84,4 +84,18 @@ autocorr.mat <- function(p = 100, rho = 0.9) {
   return(rho^abs(row(mat)-col(mat)))
 }
 
+#' Sum.I
+#' @export
+sum.I <-function(yy,FUN,Yi,Vi=NULL,ties.method = "first") ## ties either 'f' or 'a'
+{
+  if (FUN=="<"|FUN==">=") { yy <- -yy; Yi <- -Yi}
+  pos <- rank(c(yy,Yi),ties.method=ties.method)[1:length(yy)]-rank(yy,ties.method=ties.method)
+  if (substring(FUN,2,2)=="=") pos <- length(Yi)-pos
+  if (!is.null(Vi)) {
+    if(substring(FUN,2,2)=="=") tmpind <- order(-Yi) else  tmpind <- order(Yi)
+    ##Vi <- cumsum2(as.matrix(Vi)[tmpind,])
+    Vi <- apply(as.matrix(Vi)[tmpind,,drop=F],2,cumsum)
+    return(rbind(0,Vi)[pos+1,])
+  } else return(pos)
+}
 

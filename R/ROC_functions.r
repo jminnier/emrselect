@@ -216,6 +216,14 @@ ROC.Est.FUN <- function(Di,yyi,yy0=0,fpr0=NULL,wgti=NULL,yes.smooth=F)
     out
   }
 
+#' AUC function
+#'
+#' @param data
+#'
+#' @return AUC
+#' @export
+#'
+#' @examples AUC.FUN(cbind(rbinom(10),rnorm(10)))
 AUC.FUN = function(data)
   {
 	dd = data[,1]; xx = data[,2]; n0 = sum(1-dd); n1 = sum(dd)

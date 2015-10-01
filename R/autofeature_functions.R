@@ -4,18 +4,24 @@
 #' @param dat.X data.frame or matrix of covariates
 #' @param dat.S data.frame or matrix of surrogate markers
 #' @param b0 number of perturbation resampling draws
+#' @param Scov.diag if TRUE restrict covariance of S mclust to
+#' be diagonal, default FALSE
 #'
 #' @return list
 #' @export
 #'
-emrselect <- function(dat.X,dat.S,b0=100) {
+emrselect <- function(dat.X,dat.S,b0=100,sub.boot=NULL,Scov.diag=FALSE) {
   dat.X = as.matrix(dat.X)
   A0 = ncol(as.matrix(dat.S))
+  mclust.modelNames=NULL
+  if(Scov.diag) {mclust.modelNames = c("EII","VII","EEI","VEI","EVI","VVI")}
   ## ========================================================================== ##
   ## multiple surroage analysis: clustering of the multivariate surrogate first ##
   ##                             then use predicted prob as pseudo outcome      ##
   ## ========================================================================== ##
-  tmpout_all <- kern_varselect(dat.S=dat.S,dat.X=dat.X,b0=b0)
+  tmpout_all <- kern_varselect(dat.S=dat.S,dat.X=dat.X,b0=b0,
+                              sub.boot=sub.boot,
+                              mclust.modelNames=mclust.modelNames)
   ## ==================================================================================== ##
   ##                     compare to marginal single surrogate analysis                     ##
   ## **1: clustering of a univariate surrogate; then use predicted prob as pseudo outcome ##
@@ -24,10 +30,20 @@ emrselect <- function(dat.X,dat.S,b0=100) {
   bptb1.list = bptb2.list = as.list(1:A0); phat1.marg = phat2.marg = bhat1.marg = bhat2.marg = NULL
   ## single Sk at a time, either first do clustring, or threshold by 1
   for(kk in 1:A0){ #A0 number of S variables
-    tmpdat.S = dat.S[,kk,drop=F]; tmpout1 <- kern_varselect(dat.S=tmpdat.S,dat.X=dat.X,b0=b0)
-    tmpdat.S = 1*(tmpdat.S >=1);      tmpout2 <- kern_varselect(dat.S=tmpdat.S,dat.X=dat.X,b0=b0)
-    bptb1.list[[kk]] = tmpout1$tmpb; bhat1.marg = cbind(bhat1.marg, tmpout1$bhat); phat1.marg = cbind(phat1.marg,tmpout1$phat)
-    bptb2.list[[kk]] = tmpout2$tmpb; bhat2.marg = cbind(bhat2.marg, tmpout2$bhat); phat2.marg = cbind(phat2.marg,tmpout2$phat)
+    tmpdat.S = dat.S[,kk,drop=F]
+    tmpout1 <- kern_varselect(dat.S=tmpdat.S,dat.X=dat.X,b0=b0,
+                              sub.boot=sub.boot,
+                              mclust.modelNames=NULL)
+
+    tmpdat.S = 1*(tmpdat.S >=1)
+    tmpout2 <- kern_varselect(dat.S=tmpdat.S,dat.X=dat.X,b0=b0,
+                             sub.boot=sub.boot,
+                             mclust.modelNames=NULL)
+
+    bptb1.list[[kk]] = tmpout1$tmpb
+    bhat1.marg = cbind(bhat1.marg, tmpout1$bhat); phat1.marg = cbind(phat1.marg,tmpout1$phat)
+    bptb2.list[[kk]] = tmpout2$tmpb
+    bhat2.marg = cbind(bhat2.marg, tmpout2$bhat); phat2.marg = cbind(phat2.marg,tmpout2$phat)
   }
 
   return(list(
@@ -47,23 +63,36 @@ emrselect <- function(dat.X,dat.S,b0=100) {
 #' @param dat.S
 #' @param dat.X
 #' @param b0
+#' @param sub.boot numeric, if nonnull bootstrap a subsample of rows
+#' @param mclust.modelNames see ?mclustModelNames in the mclust package
 #'
 #' @return list
 #' @export
 #'
-kern_varselect <- function(dat.S, dat.X, b0) {
+kern_varselect <- function(dat.S, dat.X, b0, sub.boot=NULL, mclust.modelNames=NULL) {
   ## need dat.S; dat.X both in matrix form ##
   dat.S = as.matrix(dat.S);
   if(length(unique(dat.S[,1])) > 2){ #if dat.S is not binary, approximate
-    fit.type = "approx"; tmpfit = mclust::Mclust(dat.S,G=2); pi.S = ProbD.S(dat.S,par=tmpfit$par);
+    fit.type = "approx"
+    tmpfit = mclust::Mclust(dat.S, G=2, modelNames=mclust.modelNames)
+    pi.S = ProbD.S(dat.S,par=tmpfit$par);
   }else{
-    fit.type = "exact"; pi.S = dat.S[,1]
+    fit.type = "exact"
+    pi.S = dat.S[,1]
   }
   tmpb = matrix(NA,nrow=b0,ncol=ncol(dat.X)+1)
   bhat = Est.ALASSO.GLM.new(cbind(pi.S,dat.X),fit.type=fit.type)
   for(bb in 1:b0){
-    junk = Est.ALASSO.GLM.new(cbind(pi.S,dat.X), Wi=rexp(nrow(dat.X)),fit.type=fit.type);
-    if(length(junk)==ncol(dat.X)+1){tmpb[bb,] = junk}}
+    tmpdat = cbind(pi.S,dat.X)
+    tmpWi = rexp(nrow(dat.X))
+    if(!is.null(sub.boot)) {
+      tmpind = sample(1:length(tmpWi),size = sub.boot)
+      tmpdat = tmpdat[tmpind,,drop=F]
+      tmpWi = tmpWi[tmpind]
+    }
+    junk = Est.ALASSO.GLM.new(tmpdat, Wi=tmpWi,fit.type=fit.type);
+    if(length(junk)==ncol(dat.X)+1){tmpb[bb,] = junk}
+  }#end bb loop
   phat = apply(tmpb[,-1]==0,2,mean,na.rm=T) #phat does not include intercept
   return(list("tmpb"=tmpb,"bhat"=bhat,"phat"=phat))
 }

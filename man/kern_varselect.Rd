@@ -6,7 +6,7 @@
 regularized regression estimation, and
 perturbation resampling}
 \usage{
-kern_varselect(dat.S, dat.X, b0)
+kern_varselect(dat.S, dat.X, b0, sub.boot = NULL, mclust.modelNames = NULL)
 }
 \arguments{
 \item{dat.S}{}
@@ -14,6 +14,10 @@ kern_varselect(dat.S, dat.X, b0)
 \item{dat.X}{}
 
 \item{b0}{}
+
+\item{sub.boot}{numeric, if nonnull bootstrap a subsample of rows}
+
+\item{mclust.modelNames}{see ?mclustModelNames in the mclust package}
 }
 \value{
 list

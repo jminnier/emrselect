@@ -14,7 +14,10 @@ emrselect <- function(dat.X,dat.S,b0=100,sub.boot=NULL,Scov.diag=FALSE) {
   dat.X = as.matrix(dat.X)
   A0 = ncol(as.matrix(dat.S))
   mclust.modelNames=NULL
-  if(Scov.diag) {mclust.modelNames = c("EII","VII","EEI","VEI","EVI","VVI")}
+  if(Scov.diag) {
+    #mclust.modelNames = c("EII","VII","EEI","VEI","EVI","VVI")
+    mclust.modelNames="EEI"
+    }
   ## ========================================================================== ##
   ## multiple surroage analysis: clustering of the multivariate surrogate first ##
   ##                             then use predicted prob as pseudo outcome      ##
@@ -81,7 +84,8 @@ kern_varselect <- function(dat.S, dat.X, b0, sub.boot=NULL, mclust.modelNames=NU
     pi.S = dat.S[,1]
   }
   tmpb = matrix(NA,nrow=b0,ncol=ncol(dat.X)+1)
-  bhat = Est.ALASSO.GLM.new(cbind(pi.S,dat.X),fit.type=fit.type)
+  bhat = try(Est.ALASSO.GLM.new(cbind(pi.S,dat.X),fit.type=fit.type))
+  if(class(bhat)=="try-error") {bhat=rep(NA,ncol(dat.X))}
   for(bb in 1:b0){
     tmpdat = cbind(pi.S,dat.X)
     tmpWi = rexp(nrow(dat.X))

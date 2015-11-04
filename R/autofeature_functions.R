@@ -4,6 +4,7 @@
 #' @param dat.X data.frame or matrix of covariates
 #' @param dat.S data.frame or matrix of surrogate markers
 #' @param b0 number of perturbation resampling draws
+#' @param sub.boot
 #' @param Scov.diag if TRUE restrict covariance of S mclust to
 #' be diagonal, default FALSE
 #'
@@ -77,15 +78,17 @@ kern_varselect <- function(dat.S, dat.X, b0, sub.boot=NULL, mclust.modelNames=NU
   dat.S = as.matrix(dat.S);
   if(length(unique(dat.S[,1])) > 2){ #if dat.S is not binary, approximate
     fit.type = "approx"
-    tmpfit = mclust::Mclust(dat.S, G=2, modelNames=mclust.modelNames)
-    pi.S = ProbD.S(dat.S,par=tmpfit$par);
+    mclustfit = mclust::Mclust(dat.S, G=2, modelNames=mclust.modelNames)
+    pi.S = ProbD.S(dat.S,par=mclustfit$par);
   }else{
     fit.type = "exact"
+    mclustfit = NULL
     pi.S = dat.S[,1]
   }
-  tmpb = matrix(NA,nrow=b0,ncol=ncol(dat.X)+1)
+  tmpb = matrix(NA,nrow=b0,ncol=ncol(dat.X)+1); phat=NULL
   bhat = try(Est.ALASSO.GLM.new(cbind(pi.S,dat.X),fit.type=fit.type))
   if(class(bhat)=="try-error") {bhat=rep(NA,ncol(dat.X))}
+  if(b0>0) {
   for(bb in 1:b0){
     tmpdat = cbind(pi.S,dat.X)
     tmpWi = rexp(nrow(dat.X))
@@ -98,7 +101,9 @@ kern_varselect <- function(dat.S, dat.X, b0, sub.boot=NULL, mclust.modelNames=NU
     if(length(junk)==ncol(dat.X)+1){tmpb[bb,] = junk}
   }#end bb loop
   phat = apply(tmpb[,-1]==0,2,mean,na.rm=T) #phat does not include intercept
-  return(list("tmpb"=tmpb,"bhat"=bhat,"phat"=phat))
+  }#end b0>0
+
+  return(list("tmpb"=tmpb,"bhat"=bhat,"phat"=phat,"mclustfit.par"=mclustfit$par))
 }
 
 logitlik.fun = function(bet.mat,dat){
@@ -106,6 +111,15 @@ logitlik.fun = function(bet.mat,dat){
   apply(log(pi.mat)*yi + log(1-pi.mat)*(1-yi),2,sum)
 }
 
+
+#' Calculate Probability Y=1 based on mclust output
+#'
+#' @param Si data.frame or matrix of surrogate markers
+#' @param par parameter output from mclust function
+#'
+#' @return numeric value of length nrow(Si) estimating probability Y=1
+#' @export
+#'
 ProbD.S = function(Si,par){
   par.list = list("pro"=par$pro, "mu"=matrix(par$mean,ncol=2),"var"=list(1,1));
   Si = as.matrix(Si); k1 = which.max(apply(par.list$mu,2,mean)); k0 = setdiff(1:2,k1)
@@ -118,3 +132,45 @@ ProbD.S = function(Si,par){
   tmp0 = dmvnorm(Si,mean=par.list$mu[,k0],sigma=as.matrix(par.list$var[[k0]]))*par$pro[k0]
   tmp1/(tmp1+tmp0)
 }
+
+
+
+
+#' Predict Y=1 using S and X
+#'
+#' @param dat.Xt
+#' @param dat.St
+#' @param dat.Xv
+#' @param dat.Sv
+#' @param betahat
+#' @param mclustfit.par
+#' @param mclust.modelNames
+#'
+#' @return list of predictive probabilities based on X, S, and S+X for training and validation sets
+#' @export
+#'
+#' @examples
+#' #update with an example dataset
+#' #kernfit <- kern_varselect(dat.S=dat.S,dat.X=dat.X,b0=0,mclust.modelNames="EEI")
+#' #predall <- predict.emrselect(dat.Xt,dat.St,dat.Xv,dat.Sv,betahat=kernfit$bhat[-1])
+#' #AUC.FUN(cbind(dat.Yv,predall$pi.SXv))
+#'
+predict.emrselect = function(dat.Xt,dat.St,dat.Xv,dat.Sv,betahat,mclust.modelNames="EEI") {
+  dat.Xt = as.matrix(dat.Xt)
+  dat.St = as.matrix(dat.St)
+
+  pi.Xt = dat.Xt%*%betahat #betahat no intercept
+  pi.Xv = dat.Xv%*%betahat
+
+  mclustfit = mclust::Mclust(dat.St, G=2, modelNames=mclust.modelNames)
+  pi.St = ProbD.S(cbind(dat.St),par=mclustfit$par)
+  pi.Sv = ProbD.S(cbind(dat.Sv),par=mclustfit$par)
+
+  mclustfit = mclust::Mclust(cbind(dat.St,g.logit(pi.Xt)), G=2, modelNames=mclust.modelNames)
+  pi.SXt = ProbD.S(cbind(dat.St,g.logit(pi.Xt)),par=mclustfit$par)
+  pi.SXv = ProbD.S(cbind(dat.Sv,g.logit(pi.Xv)),par=mclustfit$par)
+
+  return(list("pi.SXt"=pi.SXt,"pi.SXv"=pi.SXv,"pi.Xt"=pi.Xt,"pi.Xv"=pi.Xv,"pi.St"=pi.St,"pi.Sv"=pi.Sv))
+}
+
+

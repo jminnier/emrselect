@@ -13,6 +13,8 @@ emrselect(dat.X, dat.S, b0 = 100, sub.boot = NULL, Scov.diag = FALSE)
 
 \item{b0}{number of perturbation resampling draws}
 
+\item{sub.boot}{}
+
 \item{Scov.diag}{if TRUE restrict covariance of S mclust to
 be diagonal, default FALSE}
 }

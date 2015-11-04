@@ -35,7 +35,7 @@ SIM.FUN.MultiG = function(nn,b.G,b.S,rho.S){## p: # of SNPs; K: # of algorithms
 #'
 #' b0.G = rep(c(0.3,0.5,0.3,0.2,0),c(1,2,3,2,50)); b0.G = rbind(-1,b0.G); p = ncol(b0.G)
 #' b0.S = c(1.5,1.5,2)
-#' mydata0 = SIM.FUN(NN,b.G=b0.G,b.S=b0.S,rho.S=0.3, rho.G=0.2);
+#' mydata0 = SIM.FUN(100,b.G=b0.G,b.S=b0.S,rho.S=0.3,ng.cts=3,rho.G=0.2);
 SIM.FUN = function(nn,b.G,b.S,rho.S,rho.G,ng.cts,
                    Gtype="binomial", # or lognormal
                    Stype="cts" #or count
@@ -50,7 +50,7 @@ SIM.FUN = function(nn,b.G,b.S,rho.S,rho.G,ng.cts,
 
   ## Surrogates S
   A = length(b.S); p = ncol(b.G)
-  S = mvrnorm(nn,mu=c(-1.5,-1,rep(-0.5,A-2)),Sigma=rho.S+(1-rho.S)*diag(A)) + VTM(b.S,nn)*Y
+  S = MASS::mvrnorm(nn,mu=c(-1.5,-1,rep(-0.5,A-2)),Sigma=rho.S+(1-rho.S)*diag(A)) + VTM(b.S,nn)*Y
 
   #ggplot(melt(data.frame(S)),aes(x=value,color=variable))+geom_density()
   #S2 = round(exp(S-1))
@@ -87,7 +87,7 @@ SIM.FUN.old2 = function(nn,b.G,b.S,rho.S){## p: # of SNPs; K: # of algorithms
 
 SIM.FUN.old = function(nn,rtn="data.t")
 {
-  xx = mvrnorm(nn,mu=rep(0,p.x),Sigma=Sig0.X);
+  xx = MASS::mvrnorm(nn,mu=rep(0,p.x),Sigma=Sig0.X);
   icd.B = rbinom(nn,size=1,prob=g.logit(xx[,1]*3+2))
   xx[,1] = (xx[,1]*(xx[,1]>0)+(rexp(nn,rate=0.1)+5)*rbinom(nn,size=1,prob=0.1))*icd.B
   prob.x = g.logit(-alp0+c(xx%*%beta0)-3*(1-icd.B)+0.2*(xx[,1]>15))

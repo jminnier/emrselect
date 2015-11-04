@@ -16,6 +16,6 @@ AUC
 AUC function
 }
 \examples{
-AUC.FUN(cbind(rbinom(10),rnorm(10)))
+AUC.FUN(cbind(rbinom(10,size=2,prob=.5),rnorm(10)))
 }
 

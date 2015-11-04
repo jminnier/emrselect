@@ -136,7 +136,7 @@ ProbD.S = function(Si,par){
 
 
 
-#' Predict Y=1 using S and X
+#' Predict D=1 via mclust on S and X
 #'
 #' @param dat.Xt
 #' @param dat.St
@@ -152,10 +152,10 @@ ProbD.S = function(Si,par){
 #' @examples
 #' #update with an example dataset
 #' #kernfit <- kern_varselect(dat.S=dat.S,dat.X=dat.X,b0=0,mclust.modelNames="EEI")
-#' #predall <- predict.emrselect(dat.Xt,dat.St,dat.Xv,dat.Sv,betahat=kernfit$bhat[-1])
+#' #predall <- ProbD.SX(dat.Xt,dat.St,dat.Xv,dat.Sv,betahat=kernfit$bhat[-1])
 #' #AUC.FUN(cbind(dat.Yv,predall$pi.SXv))
 #'
-predict.emrselect = function(dat.Xt,dat.St,dat.Xv,dat.Sv,betahat,mclust.modelNames="EEI") {
+ProbD.SX = function(dat.Xt,dat.St,dat.Xv,dat.Sv,betahat,mclust.modelNames="EEI") {
   dat.Xt = as.matrix(dat.Xt)
   dat.St = as.matrix(dat.St)
 

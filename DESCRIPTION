@@ -6,7 +6,8 @@ Date: 2015-05-07
 Author: person("Jessica", "Minnier", email = "minnier@ohsu.edu",
     role = c("aut", "cre"))
 Maintainer: Jessica Minnier <minnier@ohsu.edu>
-Description: An automated feature selection method using a surrogate outcome with data from Electronic Medical Records.
+Description: An automated feature selection method using a surrogate outcome
+    with data from Electronic Medical Records.
 License: GPL (>= 2)
 LazyData: TRUE
 Imports:
@@ -17,3 +18,4 @@ Imports:
     MASS,
     mvtnorm,
     stepPlr
+RoxygenNote: 5.0.1

@@ -2,13 +2,13 @@ Package: emrselect
 Type: Package
 Title: Automated EMR feature selection.
 Version: 0.0.9000
-Date: 2015-05-07
+Date: 2016-03-23
 Author: person("Jessica", "Minnier", email = "minnier@ohsu.edu",
     role = c("aut", "cre"))
 Maintainer: Jessica Minnier <minnier@ohsu.edu>
 Description: An automated feature selection method using a surrogate outcome
     with data from Electronic Medical Records.
-License: GPL (>= 2)
+License: GPL (>= 3)
 LazyData: TRUE
 Imports:
     dplyr,

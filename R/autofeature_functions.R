@@ -99,7 +99,7 @@ kern_varselect <- function(dat.S, dat.X, b0, sub.n=NULL,
   dat.S = as.matrix(dat.S);
   tmpind = 1:nrow(dat.S)
   if(!is.null(sub.n)) {
-    tmpind = sample(1:nrow(dat.S),size = sub.n)
+    tmpind = sample(1:nrow(dat.S),size = min(nrow(dat.S),sub.n))
   }
   dat.X1 = dat.X[tmpind,,drop=FALSE]
   dat.S1 = dat.S[tmpind,,drop=FALSE]
@@ -123,7 +123,7 @@ kern_varselect <- function(dat.S, dat.X, b0, sub.n=NULL,
     tmpdat = cbind(pi.S,dat.X)
     tmpWi = rexp(nrow(dat.X))
     if(!is.null(sub.n)) {
-      tmpind = sample(1:nrow(dat.X),size = sub.n)
+      tmpind = sample(1:nrow(dat.X),size = min(nrow(dat.S),sub.n))
       dat.X1 = dat.X[tmpind,,drop=FALSE]
       dat.S1 = dat.S[tmpind,,drop=FALSE]
       if(length(unique(dat.S1[,1])) > 2){ #if dat.S is not binary, approximate
@@ -210,7 +210,7 @@ ProbD.SX = function(dat.Xt,dat.St,dat.Xv,dat.Sv,
   # if sub.n is given, use a subset of data to train clustering parameters
   tmpind = 1:nrow(dat.S)
   if(!is.null(sub.n)) {
-    tmpind = sample(1:nrow(dat.S),size = sub.n)
+    tmpind = sample(1:nrow(dat.S),size = min(nrow(dat.S),sub.n))
   }
   dat.X1 = dat.Xt[tmpind,,drop=FALSE]
   dat.S1 = dat.St[tmpind,,drop=FALSE]

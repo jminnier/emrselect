@@ -73,29 +73,52 @@ emrselect <- function(dat.X,dat.S,b0=100,sub.boot=NULL,Scov.diag=FALSE) {
 #' @return list
 #' @export
 #'
-kern_varselect <- function(dat.S, dat.X, b0, sub.boot=NULL, mclust.modelNames=NULL) {
+kern_varselect <- function(dat.S, dat.X, b0, sub.boot=NULL,
+                           sub.sample.type="perturb",
+                           mclust.modelNames=NULL) {
   ## need dat.S; dat.X both in matrix form ##
   dat.S = as.matrix(dat.S);
+  tmpind = 1:nrow(dat.S)
+  if(!is.null(sub.boot)) {
+    tmpind = sample(1:nrow(dat.S),size = sub.boot)
+  }
+  dat.X1 = dat.X[tmpind,,drop=FALSE]
+  dat.S1 = dat.S[tmpind,,drop=FALSE]
+
   if(length(unique(dat.S[,1])) > 2){ #if dat.S is not binary, approximate
     fit.type = "approx"
-    mclustfit = mclust::Mclust(dat.S, G=2, modelNames=mclust.modelNames)
-    pi.S = ProbD.S(dat.S,par=mclustfit$par);
+    mclustfit = mclust::Mclust(dat.S1, G=2, modelNames=mclust.modelNames)
+    pi.S = ProbD.S(dat.S1,par=mclustfit$par);
   }else{
     fit.type = "exact"
     mclustfit = NULL
-    pi.S = dat.S[,1]
+    pi.S = dat.S1[,1]
   }
-  tmpb = matrix(NA,nrow=b0,ncol=ncol(dat.X)+1); phat=NULL
-  bhat = try(Est.ALASSO.GLM.new(cbind(pi.S,dat.X),fit.type=fit.type))
+
+  bhat = try(Est.ALASSO.GLM.new(cbind(pi.S,dat.X1),fit.type=fit.type))
   if(class(bhat)=="try-error") {bhat=rep(NA,ncol(dat.X))}
+
+  tmpb = matrix(NA,nrow=b0,ncol=ncol(dat.X)+1); phat=NULL
   if(b0>0) {
   for(bb in 1:b0){
     tmpdat = cbind(pi.S,dat.X)
     tmpWi = rexp(nrow(dat.X))
     if(!is.null(sub.boot)) {
-      tmpind = sample(1:length(tmpWi),size = sub.boot)
-      tmpdat = tmpdat[tmpind,,drop=F]
-      tmpWi = tmpWi[tmpind]
+      tmpind = sample(1:nrow(dat.X),size = sub.boot)
+      dat.X1 = dat.X[tmpind,,drop=FALSE]
+      dat.S1 = dat.S[tmpind,,drop=FALSE]
+      if(length(unique(dat.S1[,1])) > 2){ #if dat.S is not binary, approximate
+        fit.type = "approx"
+        mclustfit = mclust::Mclust(dat.S1, G=2, modelNames=mclust.modelNames)
+        pi.S = ProbD.S(dat.S1,par=mclustfit$par);
+      }else{
+        fit.type = "exact"
+        mclustfit = NULL
+        pi.S = dat.S1[,1]
+      }
+      tmpdat = cbind(pi.S,dat.X1)
+      tmpWi = rep(1,length(tmpind))
+      if(sub.sample.type=="perturb") {tmpWi = rexp(length(tmpind))}
     }
     junk = Est.ALASSO.GLM.new(tmpdat, Wi=tmpWi,fit.type=fit.type);
     if(length(junk)==ncol(dat.X)+1){tmpb[bb,] = junk}
@@ -153,7 +176,6 @@ ProbD.S = function(Si,par){
 #' #update with an example dataset
 #' #kernfit <- kern_varselect(dat.S=dat.S,dat.X=dat.X,b0=0,mclust.modelNames="EEI")
 #' #predall <- ProbD.SX(dat.Xt,dat.St,dat.Xv,dat.Sv,betahat=kernfit$bhat[-1])
-#' #AUC.FUN(cbind(dat.Yv,predall$pi.SXv))
 #'
 ProbD.SX = function(dat.Xt,dat.St,dat.Xv,dat.Sv,betahat,mclust.modelNames="EEI") {
   dat.Xt = as.matrix(dat.Xt)
@@ -172,5 +194,3 @@ ProbD.SX = function(dat.Xt,dat.St,dat.Xv,dat.Sv,betahat,mclust.modelNames="EEI")
 
   return(list("pi.SXt"=pi.SXt,"pi.SXv"=pi.SXv,"pi.Xt"=pi.Xt,"pi.Xv"=pi.Xv,"pi.St"=pi.St,"pi.Sv"=pi.Sv))
 }
-
-

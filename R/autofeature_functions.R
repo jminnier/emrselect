@@ -23,14 +23,14 @@
 #' @param dat.X data.frame or matrix of covariates
 #' @param dat.S data.frame or matrix of surrogate markers
 #' @param b0 number of perturbation resampling draws
-#' @param sub.boot
+#' @param sub.n
 #' @param Scov.diag if TRUE restrict covariance of S mclust to
 #' be diagonal, default FALSE
 #'
 #' @return list
 #' @export
 #'
-emrselect <- function(dat.X,dat.S,b0=100,sub.boot=NULL,Scov.diag=FALSE) {
+emrselect <- function(dat.X,dat.S,b0=100,sub.n=NULL,Scov.diag=FALSE) {
   dat.X = as.matrix(dat.X)
   A0 = ncol(as.matrix(dat.S))
   mclust.modelNames=NULL
@@ -43,7 +43,7 @@ emrselect <- function(dat.X,dat.S,b0=100,sub.boot=NULL,Scov.diag=FALSE) {
   ##                             then use predicted prob as pseudo outcome      ##
   ## ========================================================================== ##
   tmpout_all <- kern_varselect(dat.S=dat.S,dat.X=dat.X,b0=b0,
-                              sub.boot=sub.boot,
+                              sub.n=sub.n,
                               mclust.modelNames=mclust.modelNames)
   ## ==================================================================================== ##
   ##                     compare to marginal single surrogate analysis                     ##
@@ -55,12 +55,12 @@ emrselect <- function(dat.X,dat.S,b0=100,sub.boot=NULL,Scov.diag=FALSE) {
   for(kk in 1:A0){ #A0 number of S variables
     tmpdat.S = dat.S[,kk,drop=F]
     tmpout1 <- kern_varselect(dat.S=tmpdat.S,dat.X=dat.X,b0=b0,
-                              sub.boot=sub.boot,
+                              sub.n=sub.n,
                               mclust.modelNames=NULL)
 
     tmpdat.S = 1*(tmpdat.S >=1)
     tmpout2 <- kern_varselect(dat.S=tmpdat.S,dat.X=dat.X,b0=b0,
-                             sub.boot=sub.boot,
+                             sub.n=sub.n,
                              mclust.modelNames=NULL)
 
     bptb1.list[[kk]] = tmpout1$tmpb
@@ -86,20 +86,20 @@ emrselect <- function(dat.X,dat.S,b0=100,sub.boot=NULL,Scov.diag=FALSE) {
 #' @param dat.S
 #' @param dat.X
 #' @param b0
-#' @param sub.boot numeric, if nonnull bootstrap a subsample of rows
+#' @param sub.n numeric, if nonnull bootstrap a subsample of rows
 #' @param mclust.modelNames see ?mclustModelNames in the mclust package
 #'
 #' @return list
 #' @export
 #'
-kern_varselect <- function(dat.S, dat.X, b0, sub.boot=NULL,
+kern_varselect <- function(dat.S, dat.X, b0, sub.n=NULL,
                            sub.sample.type="perturb",
                            mclust.modelNames=NULL) {
   ## need dat.S; dat.X both in matrix form ##
   dat.S = as.matrix(dat.S);
   tmpind = 1:nrow(dat.S)
-  if(!is.null(sub.boot)) {
-    tmpind = sample(1:nrow(dat.S),size = sub.boot)
+  if(!is.null(sub.n)) {
+    tmpind = sample(1:nrow(dat.S),size = sub.n)
   }
   dat.X1 = dat.X[tmpind,,drop=FALSE]
   dat.S1 = dat.S[tmpind,,drop=FALSE]
@@ -122,8 +122,8 @@ kern_varselect <- function(dat.S, dat.X, b0, sub.boot=NULL,
   for(bb in 1:b0){
     tmpdat = cbind(pi.S,dat.X)
     tmpWi = rexp(nrow(dat.X))
-    if(!is.null(sub.boot)) {
-      tmpind = sample(1:nrow(dat.X),size = sub.boot)
+    if(!is.null(sub.n)) {
+      tmpind = sample(1:nrow(dat.X),size = sub.n)
       dat.X1 = dat.X[tmpind,,drop=FALSE]
       dat.S1 = dat.S[tmpind,,drop=FALSE]
       if(length(unique(dat.S1[,1])) > 2){ #if dat.S is not binary, approximate
@@ -196,18 +196,32 @@ ProbD.S = function(Si,par){
 #' #kernfit <- kern_varselect(dat.S=dat.S,dat.X=dat.X,b0=0,mclust.modelNames="EEI")
 #' #predall <- ProbD.SX(dat.Xt,dat.St,dat.Xv,dat.Sv,betahat=kernfit$bhat[-1])
 #'
-ProbD.SX = function(dat.Xt,dat.St,dat.Xv,dat.Sv,betahat,mclust.modelNames="EEI") {
+ProbD.SX = function(dat.Xt,dat.St,dat.Xv,dat.Sv,
+                    betahat,
+                    sub.n=NULL,
+                    mclust.modelNames="EEI") {
+
   dat.Xt = as.matrix(dat.Xt)
   dat.St = as.matrix(dat.St)
 
   pi.Xt = dat.Xt%*%betahat #betahat no intercept
   pi.Xv = dat.Xv%*%betahat
 
-  mclustfit = mclust::Mclust(dat.St, G=2, modelNames=mclust.modelNames)
+  # if sub.n is given, use a subset of data to train clustering parameters
+  tmpind = 1:nrow(dat.S)
+  if(!is.null(sub.n)) {
+    tmpind = sample(1:nrow(dat.S),size = min(dat.S,sub.n))
+  }
+  dat.X1 = dat.Xt[tmpind,,drop=FALSE]
+  dat.S1 = dat.St[tmpind,,drop=FALSE]
+  pi.X1 = dat.X1%*%betahat
+
+
+  mclustfit = mclust::Mclust(dat.S1, G=2, modelNames=mclust.modelNames)
   pi.St = ProbD.S(cbind(dat.St),par=mclustfit$par)
   pi.Sv = ProbD.S(cbind(dat.Sv),par=mclustfit$par)
 
-  mclustfit = mclust::Mclust(cbind(dat.St,g.logit(pi.Xt)), G=2, modelNames=mclust.modelNames)
+  mclustfit = mclust::Mclust(cbind(dat.S1,g.logit(pi.X1)), G=2, modelNames=mclust.modelNames)
   pi.SXt = ProbD.S(cbind(dat.St,g.logit(pi.Xt)),par=mclustfit$par)
   pi.SXv = ProbD.S(cbind(dat.Sv,g.logit(pi.Xv)),par=mclustfit$par)
 

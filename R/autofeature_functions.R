@@ -210,7 +210,7 @@ ProbD.SX = function(dat.Xt,dat.St,dat.Xv,dat.Sv,
   # if sub.n is given, use a subset of data to train clustering parameters
   tmpind = 1:nrow(dat.S)
   if(!is.null(sub.n)) {
-    tmpind = sample(1:nrow(dat.S),size = min(dat.S,sub.n))
+    tmpind = sample(1:nrow(dat.S),size = sub.n)
   }
   dat.X1 = dat.Xt[tmpind,,drop=FALSE]
   dat.S1 = dat.St[tmpind,,drop=FALSE]
